@@ -160,7 +160,7 @@ fn main() -> ! {
     sm.set_pindirs(pindirs);
     sm.start();
 
-    info!("PIO block setuped");
+    info!("PIO block has been set up");
 
     let di = Pio16BitBus::new(tx, dc);
     let mut display = ILI9488::new(di, Some(rst), Some(bl), 480, 320);
