@@ -1,4 +1,4 @@
-### Pico_DM_QD3503728 的 embedded_graphics移植
+### Pico_DM_QD3503728 的 embedded_graphics 移植
 
 ## TODO
 
@@ -31,10 +31,12 @@
 3. 安装这些有助于调试和下载的工具:
     ```bash
     cargo install flip-link
+
+    # Required for following steps
+    sudo apt install cmake libudev-dev -y
     # Useful to creating UF2 images for the RP2040 USB Bootloader
     cargo install elf2uf2-rs --locked
     # Useful for flashing over the SWD pins using a supported JTAG probe
-    sudo apt install cmake libudev-dev -y
     cargo install --locked probe-rs-tools
     ```
 
@@ -57,7 +59,12 @@ cargo build -r --example demo-text-tga
 1. 通过 CMSIS-DAP 调试器进行下载：
 
     你可能需要先配置udev rules才能让cmsis-dap得以识别到，复制工程目录下的`50-cmsis-dap.rules`，
-    到`/etc/udev/rules.d/`路径下，然后执行
+    到`/etc/udev/rules.d/`路径下
+    ```bash
+    sudo cp 50-cmsis-dap.rules /etc/udev/rules.d
+    ```
+
+    然后执行
     ```bash
     sudo udevadm control --reload-rules
     sudo udevadm trigger

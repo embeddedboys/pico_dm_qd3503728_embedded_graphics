@@ -12,7 +12,8 @@ use fugit::RateExtU32;
 use hal::{
     clocks::{ClocksManager, InitError},
     // dma::{double_buffer, single_buffer, DMAExt},
-    gpio::{FunctionPio0, Pin},
+    gpio::{FunctionPio0, Pin, PinState},
+    i2c::I2C,
     pac,
     pac::vreg_and_chip_reset::vreg::VSEL_A,
     pio::{Buffers, PIOExt, ShiftDirection},
@@ -22,7 +23,6 @@ use hal::{
     // watchdog::Watchdog,
     xosc::setup_xosc_blocking,
     Clock,
-    i2c::I2C,
 };
 use panic_probe as _;
 use rp2040_hal as hal;
@@ -245,7 +245,7 @@ fn main() -> ! {
     );
 
     let irq_pin = pins.gpio21.into_pull_up_input();
-    let rst_pin = pins.gpio18.into_push_pull_output();
+    let rst_pin = pins.gpio18.into_push_pull_output_in_state(PinState::Low);
     let mut touch = ft6236::FT6236::new(irq_pin, rst_pin, i2c).unwrap();
     let _ = touch.init(&mut delay);
 
@@ -253,28 +253,31 @@ fn main() -> ! {
         touch.read().map_err(|_| ()).unwrap().map(|point| {
             // info!("x : {}, y : {}", point.0, point.1);
             Circle::with_center(Point::new((point.0) as _, (point.1) as _), 0)
-            .into_styled(thick_stroke)
-            .draw(&mut display.color_converted())
-            .unwrap();
+                .into_styled(thick_stroke)
+                .draw(&mut display.color_converted())
+                .unwrap();
         });
     }
 }
 
 mod ft6236 {
     use cortex_m::delay::Delay;
-    use defmt::info;
     use embedded_hal::digital::{InputPin, OutputPin};
     use embedded_hal::i2c::I2c;
 
-    const FT6236_DEF_ADDR: u8 =    0x38;
-    const FT6236_REG_TD_STAT: u8 = 0x02;
-    const FT6236_REG_TP1_XH: u8 =  0x03;
-    const FT6236_REG_TP1_XL: u8 =  0x04;
-    const FT6236_REG_TP1_YH: u8 =  0x05;
-    const FT6236_REG_TP1_YL: u8 =  0x06;
+    const FT6236_DEF_ADDR: u8 = 0x38;
+
+    #[allow(dead_code)]
+    mod regs {
+        pub const FT6236_REG_TD_STAT: u8 = 0x02;
+        pub const FT6236_REG_TP1_XH: u8 = 0x03;
+        pub const FT6236_REG_TP1_XL: u8 = 0x04;
+        pub const FT6236_REG_TP1_YH: u8 = 0x05;
+        pub const FT6236_REG_TP1_YL: u8 = 0x06;
+    }
 
     pub struct FT6236<IRQ: InputPin, RST: OutputPin, I2C: I2c> {
-        irq: IRQ,
+        _irq: IRQ,
         rst: RST,
         i2c: I2C,
         addr: u8,
@@ -283,9 +286,9 @@ mod ft6236 {
     impl<PinE, IRQ: InputPin<Error = PinE>, RST: OutputPin<Error = PinE>, I2C: I2c>
         FT6236<IRQ, RST, I2C>
     {
-        pub fn new(irq: IRQ, rst: RST, i2c: I2C) -> Result<Self, PinE> {
+        pub fn new(_irq: IRQ, rst: RST, i2c: I2C) -> Result<Self, PinE> {
             Ok(Self {
-                irq,
+                _irq,
                 rst,
                 i2c,
                 addr: FT6236_DEF_ADDR,
@@ -327,15 +330,15 @@ mod ft6236 {
         // }
 
         pub fn is_pressed(&mut self) -> Result<bool, I2C::Error> {
-            Ok(self.read_reg(FT6236_REG_TD_STAT)? > 0)
+            Ok(self.read_reg(regs::FT6236_REG_TD_STAT)? > 0)
         }
 
         pub fn read_x(&mut self) -> Result<u16, I2C::Error> {
-            Ok(self.read_reg_16(FT6236_REG_TP1_YH)?)
+            Ok(self.read_reg_16(regs::FT6236_REG_TP1_YH)?)
         }
 
         pub fn read_y(&mut self) -> Result<u16, I2C::Error> {
-            Ok(320 - (self.read_reg_16(FT6236_REG_TP1_XH)? & 0x1fff))
+            Ok(320 - (self.read_reg_16(regs::FT6236_REG_TP1_XH)? & 0x1fff))
         }
 
         pub fn read(&mut self) -> Result<Option<(u16, u16)>, Error<PinE, I2C::Error>> {
@@ -344,24 +347,19 @@ mod ft6236 {
                     if !pressed {
                         Ok(None)
                     } else {
-                        Ok(Some((
-                            self.read_x().unwrap(),
-                            self.read_y().unwrap(),
-                        )))
+                        Ok(Some((self.read_x().unwrap(), self.read_y().unwrap())))
                     }
                 }
-                Err(e) => {
-                    Ok(None)
-                }
+                Err(_e) => Ok(None),
             }
         }
     }
 
+    #[allow(dead_code)]
     pub enum Error<PinE, TransferE> {
         Pin(PinE),
         I2C(TransferE),
     }
 }
-
 
 // End of file

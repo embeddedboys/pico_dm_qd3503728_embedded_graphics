@@ -1,6 +1,9 @@
 # 0d28:0204
 #SUBSYSTEM=="usb", ATTR{idVendor}=="0d28", ATTR{idProduct}=="0204", MODE:="666"
 
+# 1a86:7021
+SUBSYSTEM=="usb", ATTR{idVendor}=="1a86", ATTR{idProduct}=="7021", MODE:="666"
+
 # 04b4:f138 Cypress KitProg1/KitProg2 CMSIS-DAP mode
 SUBSYSTEM=="usb", ATTR{idVendor}=="04b4", ATTR{idProduct}=="f138", MODE:="666"
 

@@ -2,7 +2,7 @@ use crate::ILI9488;
 use core::result::Result;
 use defmt::info;
 use display_interface::{DisplayError, WriteOnlyDataCommand};
-use embedded_graphics::prelude::IntoStorage;
+// use embedded_graphics::prelude::IntoStorage;
 use embedded_graphics_core::{
     draw_target::DrawTarget,
     geometry::{Dimensions, OriginDimensions, Size},
@@ -58,7 +58,7 @@ where
             self.set_addr_win(xs, ys, xe, ye)?;
             self.write_pixels(colors)?;
         } else {
-            info!("overlap not supports yet!");
+            info!("overlap not supported yet!");
         }
         Ok(())
     }

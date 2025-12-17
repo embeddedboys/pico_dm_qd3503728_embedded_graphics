@@ -1,4 +1,4 @@
-#[cfg(not(feature = "simulator"))]
+// #[cfg(not(feature = "simulator"))]
 pub mod overclock_configs {
     use fugit::HertzU32;
     use hal::pll::PLLConfig;
@@ -13,7 +13,7 @@ pub mod overclock_configs {
         post_div2: 1,
     };
 
-        //                   REF     FBDIV VCO            POSTDIV
+    //                   REF     FBDIV VCO            POSTDIV
     // PLL SYS: 12 / 1 = 12MHz * 133 = 1596 MHZ / 6 / 1 = 266MHz
     pub const PLL_SYS_266MHZ: PLLConfig = PLLConfig {
         vco_freq: HertzU32::MHz(1596),
@@ -23,15 +23,15 @@ pub mod overclock_configs {
     };
 
     /*  ./vcocalc.py 400
-        Requested: 400.0 MHz
-        Achieved:  400.0 MHz
-        REFDIV:    1
-        FBDIV:     100 (VCO = 1200.0 MHz)
-        PD1:       3
-        PD2:       1
+       Requested: 400.0 MHz
+       Achieved:  400.0 MHz
+       REFDIV:    1
+       FBDIV:     100 (VCO = 1200.0 MHz)
+       PD1:       3
+       PD2:       1
 
-        FIXME: Should set `PICO_FLASH_SPI_CLKDIV` to 4
-     */
+       FIXME: Should set `PICO_FLASH_SPI_CLKDIV` to 4
+    */
     pub const PLL_SYS_400MHZ: PLLConfig = PLLConfig {
         vco_freq: HertzU32::MHz(1200),
         refdiv: 1,
